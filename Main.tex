@@ -6,6 +6,11 @@
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{hyperref,xcolor}
 \usepackage{indentfirst}
+\usepackage{tikz-cd}
+\usepackage{comment}
+\includecomment{comment}
+
+\usetikzlibrary{cd}
 \hypersetup{pdfstartview=FitH,  linkcolor=linkcolor,urlcolor=urlcolor, colorlinks=true}
 
 \sloppy
@@ -16,6 +21,8 @@
 \newtheorem{corol}{Следствие}
 \newtheorem{prop}{Предложение}
 \newtheorem{ass}{Утверждение}
+\newtheorem*{ass*}{Утверждение}
+\newtheorem*{lemma*}{Лемма}
 \theoremstyle{definition}
 \newtheorem{defi}{Определение}
 \newtheorem*{remark}{Замечание}
@@ -271,9 +278,13 @@ $L$ & $\langle Y, 1, \downarrow \rangle$ & $\langle L, 0, \leftarrow \rangle$ & 
 \end{defi}
 
 \begin{defi}
+  $\eta$-редукция называется преобразование $(\lambda x.A\ x)\to_\eta A$, если $x\notin FV(A)$.
+\end{defi}
+
+\begin{defi}
   Термы $A$ и $B$ называются равными, если существует цепочка $\lambda$-термов
   $$A\to C_1\to C_2 \to \dots\to C_n\to B$$
-  где каждый следующий терм получается из предыдущего либо с помощью $\alpha$-конверсии, либо с помощью $\beta$-редукции, либо с помощью преобрзования обратного к $\beta$-редукции.
+  где каждый следующий терм получается из предыдущего либо с помощью $\alpha$-конверсии, либо с помощью $\beta$-редукции, либо с помощью преобрзования обратного к $\beta$-редукции, либо с помощью $\eta$-редукции.
 \end{defi}
 
 \begin{defi}
@@ -291,6 +302,203 @@ $L$ & $\langle Y, 1, \downarrow \rangle$ & $\langle L, 0, \leftarrow \rangle$ & 
 \begin{problem}
   Придумать терм который после применения $\beta$-редукции становится "больше".
 \end{problem}
+
+\subsubsection{Каррирование}
+
+\begin{ass}[Шейнфинкель, 1924]
+  Функция нескольких переменных может быть описана как конечная последовательность функций одной переменной.
+  \begin{proof}
+    Пусть $\phi(x,y)$ терм содержащий свободные переменные $x$ и $y$. Введём, путём последовательных абстракций
+    $$\Phi_x = \lambda y.\phi(x,y)$$
+    $$\Phi = \lambda x.\Phi_x = \lambda x.(\lambda y. \phi(x,y)) = \lambda x\ y.\phi(x,y)$$
+    Тогда применение этого $\Phi$ к произвольным $X$ и $Y$ может быть выполнена последовательно
+    $$\Phi\ X\ Y = (\Phi\ X)\ Y=\Phi_x\ Y=(\lambda y.\phi(X,y))\ Y=\phi(X,Y)$$
+  \end{proof}
+\end{ass}
+
+\begin{defi}
+  Каррирование (англ. carrying) — преобразование функции от многих переменных(функции от кортежа) в функцию, берущую свои аргументы по одному.
+\end{defi}
+
+\subsubsection{Свойства редукционных графов}
+
+\begin{defi}
+  Через $G_\beta(T)$, где $T$ это терм, будем обозначать редукционный граф. Вершинами этого графа являются термы, а стрелками $\beta$-редукции.
+\end{defi}
+
+\begin{defi}[Свойство сильной нормализуемости(SN)]
+  Если любой путь исходящий из терма $T$ заканчивается, то говорят, что $G_\beta(T)$ обладает свойством сильной нормализуемости.
+\end{defi}
+
+\begin{defi}[Свойство слабой нормализуемости(WN)]
+  Если существует путь приводящий терм $T$ к нормально форме, то говорят, что $G_\beta(T$) обладает свойством слабой нормализуемости.
+\end{defi}
+
+\begin{defi}[Свойство Чёрча-Россера(CR)]
+  Если $A\twoheadrightarrow_\beta T_1$ и $A\twoheadrightarrow_\beta T_2$, а так же существует терм $U$ такой, что $T_1\twoheadrightarrow_\beta U$ и $T_2\twoheadrightarrow_\beta U$, то говорят, что $G_\beta(A)$ обладает свойством Чёрча-Россера.
+\end{defi}
+
+\begin{defi}[Слабое свойство Чёрча-Россера(WCR)]
+  Если $A\to_\beta T_1$ и $A\to_\beta T_2$, а так же существует терм $U$ такой, что $T_1\twoheadrightarrow_\beta U$ и $T_2\twoheadrightarrow_\beta U$, то говорят, что $G_\beta(A)$ обладает слабым свойством Чёрча-Россера.
+\end{defi}
+
+\begin{thm}
+  Для любого $T$:$G_\beta(T)$ обладает свойством CR.
+  \begin{proof}
+    Введём вспомогательное исчисление $\to_l$
+    \begin{enumerate}
+      \item $\forall T:T\to_l T$
+      \item $T\to_l T':\lambda x.T\to_l\lambda x.T'$
+      \item $T_1\to_l T_1',T_2\to_l T_2':(T_1\ T_2)\to_l (T_1'\ T_2')$
+      \item $T_1\to_l T_1',T_2\to_l T_2':(\lambda x.T_1)\ T_2\to_l T_1'[x:=T_2']$
+    \end{enumerate}
+    \begin{ass*}
+      $T\to_\beta T' \Rightarrow T \to_l T' \Rightarrow T\twoheadrightarrow_\beta T'$
+      \begin{proof}
+        Первая импликация следует из четвёртого правила, если подставить $T_1'=T_1,T_2'=T_2$.\\
+        Последняя импликация доказывается индукцией по выводу $T \to_l T'$.
+      \end{proof}
+    \end{ass*}
+    \begin{lemma}[О подстановке]
+      $x\neq y, x\notin FV(V) \Rightarrow U[x:=W][y:=V] =_\alpha U[y:=V][x:=W[y:=V]]$
+      \begin{proof}
+        Очевидно.
+      \end{proof}
+    \end{lemma}
+    \begin{lemma}
+      $U\to_l U',V\to_l V':U[x:=V]\to_l U'[x:=V']$
+      \begin{proof}
+        Индукция по выводу $U\to_l U'$
+        \begin{enumerate}
+          \item $U \to_l U',U = U'$ - индукция по построению $U$
+          \begin{enumerate}
+            \item $U=a$
+              \begin{enumerate}
+                \item $a=x$, тогда $x[x:=V] \to_l x[x:=V'] = V\to_l V'$
+                \item $a\neq x$, тогда $a[x:=V] \to_l a[x:=V'] = a\to_l a$
+              \end{enumerate}
+            \item $U=\lambda a.A$, тогда $A[x:=V] \to_l A[x:=V']$ и по правилу 2 $\lambda a.A[x:=V]\to_l \lambda a.A[x:=V']$
+            \item $U=A_1\ A_2$, тогда $A_1[x:=V] \to_l A_1[x:=V']$ и $A_2[x:=V] \to_l A_2[x:=V']$, а по правилу 3 $(A_1\ A_2)[x:=V]\to_l (A_1\ A_2)[x:=V']$
+          \end{enumerate}
+
+          \item $U_1\to_l U_1':\lambda y.U_1\to_l\lambda y.U_1'$, где $U=\lambda y.U_1, U'=\lambda y.U_1'$, тогда можно применить предположение индукции сначала к $U_1\to U_1'$ и получить $U_1[x:=V]\to_l U_1'[x:=V']$, а потом воспользоваться правилом 2, тогда $\lambda y.U_1[x:=V]\to_l \lambda y.U_1'[x:=V']$.
+
+          \item $U_1\to_l U_1',U_2\to_l U_2':(U_1\ U_2)\to_l (U_1'\ U_2')$, где $U=(U_1\ U_2), U'=(U_1'\ U_2')$, тогда можно применить предположение индукции сначала к $U_1\to U_1',U_2\to U_2'$ и получить $U_1[x:=V]\to_l U_1'[x:=V'],U_2[x:=V]\to_l U_2'[x:=V']$, а потом воспользоваться правилом 3, тогда $(U_1\ U_2)[x:=V]\to_l (U_1'\ U_2')[x:=V']$.
+
+          \item $U_1\to_l U_1',U_2\to_l U_2':(\lambda y.U_1)\ U_2\to_l U_1'[x:=U_2']$, где $U=(\lambda y.U_1)\ U_2, U'=U_1'[x:=U_2']$.
+
+          Хотим $(\lambda y.U_1[x:=V])\ U_2[x:=V]\to_l U_1'[y:=U_2'][x:=V']$
+
+          По предположению индукции $U_1[x:=V]\to_l U_1'[x:=V'], U_2[x:=V]\to_l U_2'[x:=V']$ и по правилу 4 $(\lambda y.U_1[x:=V])\ U_2[x:=V]\to_l U_1'[x:=V'][y:=U_2'[x:=V']]$, а по лемме о подстановке $U_1'[x:=V'][y:=U_2'[x:=V']] =_\alpha U_1'[y:=U_2'][x:=V']$.
+        \end{enumerate}
+      \end{proof}
+    \end{lemma}
+    \begin{lemma}
+      $\to_l$ обладает свойством ромба $V\to_l V_1,U\to_l V_2:V_1\to_l W, V_2\to_l W$.
+
+      \begin{center}
+        \begin{tikzcd}
+          & V \arrow{ld}{l} \arrow{rd}{l} \\
+          V_1 \arrow[dashed]{rd}{l} & & V_2 \arrow[dashed]{ld}{l} \\
+          & W
+        \end{tikzcd}
+      \end{center}
+      \begin{proof}
+        Построим $W$ по индукциии
+        \begin{enumerate}
+          \item $V=V_1$, тогда в качестве $W$ нужно взять $V_2$.
+
+            \begin{center}
+                \begin{tikzcd}
+                  V\arrow[loop left]{l}{l}\arrow{r}{l} & W \arrow[loop right]{l}{l}
+                \end{tikzcd}
+            \end{center}
+          \item $V=\lambda x.V',V_1=\lambda x.V_1', V'\to_l V_1'$, т.к. $\lambda x.V'\to_l V_2$ значит $V_2=\lambda x.V_2'$, получается, что $V'\to_l V_1',V'\to_l V_2'$ и по предположению индукции $V_1'\to_l W', V_2'\to_l W'$, а значит $W=\lambda x.W'$.
+
+            \begin{center}
+              \begin{tikzcd}
+                & V' \arrow{ld}{l} \arrow{rd}{l} \\
+                V_1' \arrow{rd}{l} & & V_2' \arrow{ld}{l} \\
+                & W'
+              \end{tikzcd}
+              \begin{tikzcd}
+                & V = \lambda x.V' \arrow{ld}{l} \arrow{rd}{l} \\
+                V_1 = \lambda x.V_1' \arrow{rd}{l} & & V_2 = \lambda x.V_2' \arrow{ld}{l} \\
+                & W = \lambda x.W'
+              \end{tikzcd}
+            \end{center}
+          \item $V = V'\ V'',V_1 = V_1'\ V_1''$
+            \begin{enumerate}
+              \item $V_2 = V_2'\ V_2''$
+
+                \begin{center}
+                  \begin{tikzcd}
+                    & V' \arrow{ld}{l} \arrow{rd}{l} \\
+                    V_1' \arrow{rd}{l} & & V_2' \arrow{ld}{l} \\
+                    & W'
+                  \end{tikzcd}
+                  \begin{tikzcd}
+                    & V'' \arrow{ld}{l} \arrow{rd}{l} \\
+                    V_1'' \arrow{rd}{l} & & V_2'' \arrow{ld}{l} \\
+                    & W''
+                  \end{tikzcd}
+                  \begin{tikzcd}
+                    & V = V'\ V'' \arrow{ld}{l} \arrow{rd}{l} \\
+                    V_1 = V_1'\ V_1'' \arrow{rd}{l} & & V_2 = V_2'\ V_2'' \arrow{ld}{l} \\
+                    & W = W'\ W''
+                  \end{tikzcd}
+                \end{center}
+              \item $V' = \lambda x.U$ получается $U\to_l U_2,V''\to_l V_2'',V=(\lambda x.U)\ V''\to_l U_2[x:=V_2'']=V_2$ и $V_1' = \lambda x.U_1$, тогда в качестве $W$ возьмём $U_3[x:=W'']$, где $U_1\to_l U_3, U_2\to_l U3$ и $V_1''\to_l W'',V_2''\to_l W''$.
+
+                \begin{center}
+                  \begin{tikzcd}
+                    & V' \arrow{ld}{l} \arrow{rd}{l} \\
+                    V_1' \arrow{rd}{l} & & V_2' \arrow{ld}{l} \\
+                    & W'
+                  \end{tikzcd}
+                  \begin{tikzcd}
+                    & V'' \arrow{ld}{l} \arrow{rd}{l} \\
+                    V_1'' \arrow{rd}{l} & & V_2'' \arrow{ld}{l} \\
+                    & W''
+                  \end{tikzcd}
+                  \begin{tikzcd}
+                    & U \arrow{ld}{l} \arrow{rd}{l} \\
+                    U_1 \arrow{rd}{l} & & U_2 \arrow{ld}{l} \\
+                    & U_3
+                  \end{tikzcd}
+                  \begin{tikzcd}
+                    & V = (\lambda x.U)\ V'' \arrow{ld}{l} \arrow{rd}{l} \\
+                    V_1 = (\lambda x.U_1)\ V_2'' \arrow{rd}{l} & & V_2 = U_2[x:=V_2''] \arrow{ld}{l} \\
+                    & W = U_3[x:=W'']
+                  \end{tikzcd}
+                \end{center}
+            \end{enumerate}
+          \item $V = (\lambda x.U)\ V'',V_1 = U_1[x:=U_1''], V_2 = U_2[x:=U_2'']$, тогда $W=U_3[x:=W'']$
+        \end{enumerate}
+      \end{proof}
+    \end{lemma}
+    \begin{lemma}
+      $\to_l$ обладает свойством ленты т.е. $U\twoheadrightarrow_l U_n, U\to_l U':U_n\to_l W, U'\twoheadrightarrow_l W$.
+      \begin{proof}
+        Доказывается индукцией по $n$.
+      \end{proof}
+    \end{lemma}
+    \begin{lemma}
+      $\twoheadrightarrow_l$ обладает свойством ромба.
+
+      \begin{center}
+        \begin{tikzcd}
+          & V \arrow[two heads]{ld}{l} \arrow[two heads]{rd}{l} \\
+          V_1 \arrow[dashed, two heads]{rd}{l} & & V_2 \arrow[dashed, two heads]{ld}{l} \\
+          & W
+        \end{tikzcd}
+      \end{center}
+    \end{lemma}
+    \begin{lemma}
+      $\twoheadrightarrow_l = \twoheadrightarrow_\beta$
+    \end{lemma}
+  \end{proof}
+\end{thm}
 
 \subsubsection{Стратегии вычислений}
 
@@ -311,38 +519,137 @@ $L$ & $\langle Y, 1, \downarrow \rangle$ & $\langle L, 0, \leftarrow \rangle$ & 
 \end{defi}
 
 \begin{defi}[Вызов по значению]
-  В соответствие со стратегией вызова по значению сокращаются только самые внешние редексы, и, кроме того, редекс срабатывает только в том случае, если его правая часть уже сведена к замкнотому терму(значению), который уже вычислен и не может быть редуцирован.
+  В соответствие со стратегией вызова по значению сокращаются только самые внешние редексы, и, кроме того, редекс срабатывает только в том случае, если его правая часть уже сведена к нормальной форме(значению), который уже вычислен и не может быть редуцирован.
 \end{defi}
 
 \begin{example}
   $$I\ (I\ (\lambda z.I\ z))$$
 \end{example}
 
-% \subsubsection{Каррирование}
-%
-% \begin{ass}[Шейнфинкель, 1924]
-%   Функция нескольких переменных может быть описана как конечная последовательность функций одной переменной.
-%   \begin{proof}
-%     Пусть $\phi(x,y)$ терм содержащий свободные переменные $x$ и $y$. Введём, путём последовательных абстракций
-%     $$\Phi_x = \lambda y.\phi(x,y)$$
-%     $$\Phi = \lambda x.\Phi_x = \lambda x.(\lambda y. \phi(x,y)) = \lambda x\ y.\phi(x,y)$$
-%     Тогда применение этого $\Phi$ к произвольным $X$ и $Y$ может быть выполнена последовательно
-%     $$\Phi\ X\ Y = (\Phi\ X)\ Y=\Phi_x\ Y=(\lambda y.\phi(X,y))\ Y=\phi(X,Y)$$
-%   \end{proof}
-% \end{ass}
-%
-% \begin{defi}
-%   Каррирование (англ. carrying) — преобразование функции от многих переменных(функции от кортежа) в функцию, берущую свои аргументы по одному.
-% \end{defi}
+\begin{problem}
+  Какие из вышеперечисленных стратегий могут не привести терм к нормальной форме даже если она есть?
+\end{problem}
 
-% \subsubsection{Теорема Чёрча-Россера}
-%
-% \begin{thm}[Чёрча-Россера]
-%   Если $A\to T_1$ и $A\to T_2$, то существует терм $U$ такой, что $T_1\to U$ и $T_2\to U$.
-% \end{thm}
-%
-% \begin{corol}
-%   Если $T_1 = T_2$, то существует терм $U$ такой, что $T_1 \to U$ и $T_2 \to U$
-% \end{corol}
+\begin{ass}
+  Нормальный порядок вычислений всегда приводит терм к нормальной форме, если она есть.
+\end{ass}
+
+\subsection{Программирование на лямбда исчислении}
+
+\subsubsection{Логические значения, пары и нумералы Чёрча}
+
+\begin{defi}[Логические значения]
+  $$TRUE = \lambda x.\lambda y.x$$
+  $$FALSE = \lambda x.\lambda y.y$$
+\end{defi}
+
+\begin{problem}
+  Придумать функции $NOT$, $AND$, $OR$, $IF$.
+\begin{comment}
+    $$IF = \lambda b.\lambda x.\lambda y.b\ x\ y$$
+    $$NOT = \lambda b.IF\ b\ FALSE\ TRUE$$
+    $$NOT = \lambda b.\lambda t.\lambda f.b\ f\ t$$
+    $$AND = \lambda x.\lambda y.x\ y\ FALSE$$
+    $$OR = \lambda x.\lambda y.x\ TRUE\ y$$
+\end{comment}
+\end{problem}
+
+\begin{defi}[Пары]
+  Функция $PAIR$ принимает два значения и запаковывает их в пару так, чтобы к ним можно было обращаться по $FST$ и $SND$.
+  $$PAIR = \lambda x.\lambda y.\lambda f.f\ x\ y$$
+\end{defi}
+
+\begin{problem}
+  Придумать функции $FST$, $SND$.
+\begin{comment}
+    $$FST = \lambda p.p\ TRUE$$
+    $$SND = \lambda p.p\ FALSE$$
+\end{comment}
+\end{problem}
+
+\begin{defi}[Нумералы Чёрча]
+  Введём на основе лямбда-исчисления аналог натуральных чисел, основанный на идее, что натуральное число — это или ноль, или увеличенное на единицу натуральное число.
+  $$\bar 0 = \lambda s.\lambda z.z$$
+  $$\bar 1 = \lambda s.\lambda z.s\ z$$
+  $$\bar 2 = \lambda s.\lambda z.s\ (s\ z)$$
+\end{defi}
+
+\begin{problem}
+  Придумать термы $SUCC$, $PLUS$, $MULT$, $POW$, $IS\_ZERO$.
+\begin{comment}
+    $$SUCC = \lambda n.\lambda s.\lambda z.s\ (n\ s\ z)$$
+    $$PLUS = \lambda n.\lambda m.\lambda s.\lambda z.n\ s\ (m\ s\ z)$$
+    $$MULT = \lambda n.\lambda m.\lambda s.\lambda z.n\ (m\ s)\ z$$
+    $$POW = \lambda n.\lambda m.\lambda s.\lambda z.m\ n\ s\ z$$
+    $$IS\_ZERO = \lambda n. n\ (\lambda x.FALSE)\ TRUE$$
+\end{comment}
+\end{problem}
+
+\begin{problem}
+  Придумать функции $PRED$, $MINUS$.
+  Если вы ничего не поняли, не огорчайтесь. Вычитание придумал Клини, когда ему вырывали зуб мудрости. А сейчас наркоз уже не тот.
+\begin{comment}
+    $$MINUS= \lambda n.\lambda m.m\ PRED n$$
+    $$PRED = \lambda n.\lambda s.\lambda z.SND\ (n\ (\lambda p.PAIR\ (s\ (FST p))\ (FST p))\ (PAIR\ z\ z))$$
+\end{comment}
+\end{problem}
+
+\begin{problem}
+  Придумать функции для сравнения чисел.
+\begin{comment}
+    $$EQ = \lambda n.\lambda m.AND\ (IS\_ZERO\ (MINUS\ n\ m))\  (IS\_ZERO\ (MINUS\ m\ n))$$
+    $$LEQ = \lambda n.\lambda m.(IS\_ZERO\ (MINUS\ n\ m))$$
+    $$GEQ = \lambda n.\lambda m.(IS\_ZERO\ (MINUS\ m\ n))$$
+    $$NEQ = \lambda n.\lambda m.NOT\ (AND\ (IS\_ZERO\ (MINUS\ n\ m))\  (IS\_ZERO\ (MINUS\ m\ n)))$$
+\end{comment}
+\end{problem}
+
+\begin{defi}
+  Список можно представить через его функцию свёртки $FOLD(REDUCE)$. Например, $[x,y,z] = \lambda c.\lambda n.c\ x\ (c\ y\ (c\ z\ n))$.
+\end{defi}
+
+\begin{problem}
+  Как будет выглядеть $NIL$? Придумайте функцию $CONS$, которая принимает элемент и список, возвращает список вместе с этим элементом. Напишите функцию $IS\_NIL$, $HEAD$ и $TAIL$.
+\begin{comment}
+    $$NIL = \lambda c.\lambda n.n$$
+    $$CONS = \lambda h.\lambda t.\lambda c.\lambda n.c\ h\ (t\ c\ n)$$
+    $$IS\_NIL = \lambda l.l\ (\lambda h.\lambda t.FALSE)\ TRUE$$
+    $$HEAD = \lambda l.l\ (\lambda h.\lambda t.h)\ NIL = \lambda l.l\ TRUE\ NIL$$
+    $$TAIL = \lambda l.FST\ (l\ (\lambda x.\lambda p.PAIR\ (SND\ p)\ (CONS\ x\ (SND\ p)))\ (PAIR\ NIL\ NIL))$$
+\end{comment}
+\end{problem}
+
+\subsubsection{Рекурсия}
+
+\begin{thm}[О неподвижной точке]
+  Для любого $\lambda$-терма $F$ существует такой $\lambda$-терм $X$, что $F\ X = X$. Такой терм $X$ называется неподвижной точкой $F$. Более того, существует такой комбинатор $Y$, что для любого $\lambda$-терма $F$ терм $Y\ F$ является неподвижной точкой $F$, т.е., $F\ (Y\ F) = Y\ F$. Комбинатор $Y$ называют комбинатором неподвижной точки.
+\end{thm}
+
+\begin{proof}
+  Пусть $W = \lambda x.F\ (x\ x)$ и $X = W\ W$, тогда: $$X = W\ W = (\lambda x.F\ (x\ x))\ W = F\ (W\ W) = F\ X$$
+\end{proof}
+
+\begin{problem}[Комбинатор Хаскелла Карри]
+  Доказать, что $Y = \lambda f.(\lambda x.f\ (x\ x))(\lambda x.f\ (x\ x))$ комбинатор неподвижной точки.
+\end{problem}
+
+\begin{problem}[Комбинатор Алана Тьюринга]
+  Доказать, что $\Theta = (\lambda x.\lambda y.y\ (x\ x\ y))(\lambda x.\lambda y.y\ (x\ x\ y))$ комбинатор неподвижной точки.
+\end{problem}
+
+\begin{problem}
+  Убедиться, что функция $FACT$ вычисляет факториал числа $n$.
+  $$g = \lambda fct.\lambda n.IF\ (IS\_ZERO\ n)\ \bar 1\ (MULT\ n\ fct\ (PRED\ n))$$
+  $$FACT = Y g$$
+\end{problem}
+
+\begin{problem}
+  Реализовать функцию вычисляющую $n$-ое число Фиббоначи.
+\begin{comment}
+    $$g = \lambda fib.\lambda n.IF\ (IS\_ZERO\ n)\ \bar 0\ (IF\ (EQ\ n\ \bar 1)\ \bar 1\ (PLUS\ (fib\ (PRED\ n))\ (fib\ (MINUS\ n\ \bar 2)))$$
+    $$FIB = Y g$$
+\end{comment}
+\end{problem}
+
 
 \end{document}
